@@ -3,9 +3,16 @@ from django.http import HttpResponse
 from . import util
 from django import forms
 import re
+import markdown2
+from markdown2 import Markdown
 
 class SearchForm(forms.Form):
     search = forms.CharField(label="")
+
+class NewForm(forms.Form):
+    title = forms.CharField(label="Title of Page")
+    textarea = forms.CharField(widget=forms.Textarea, label="")
+    
 
 def index(request):
     return render(request, "encyclopedia/index.html", {
@@ -56,3 +63,42 @@ def search(request):
                         "search_form": SearchForm()
                     })
         return HttpResponse("inside search")
+
+
+def new_page(request):
+    if request.method == "GET":
+        return render(request, "encyclopedia/new_page.html", {
+            "new_page_form": NewForm()
+            
+        })
+    elif request.method == "POST":
+        form = NewForm(request.POST)
+        if form.is_valid():
+            found_page = False
+            print("this is inside post")
+            title = form.cleaned_data["title"]
+            content = form.cleaned_data["textarea"]
+            print(title)
+            print(type(title))
+            title_entries = util.list_entries()
+            print(title_entries)
+            for entry in title_entries:
+                print(type(entry))
+                print(entry)
+                if title.lower() == entry.lower():
+                    found_page = True
+                    return HttpResponse(f"Page {title} already exists")
+            if found_page == False:
+                util.save_entry(title, content)
+                page_details = util.get_entry(title)
+                return render(request, "encyclopedia/wiki_page.html", {
+                    "name": title,
+                    "page_details": page_details
+                })
+        return HttpResponse("exits")
+                # if title == entry:
+                #     return HttpResponse(f"Page {title} already exists")
+                # else:
+                #     return HttpResponse(f"Page {title} does not exists")
+            
+        
