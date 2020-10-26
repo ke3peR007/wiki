@@ -5,6 +5,7 @@ from django import forms
 import re
 import markdown2
 from markdown2 import Markdown
+import random
 
 class SearchForm(forms.Form):
     search = forms.CharField(label="")
@@ -89,7 +90,8 @@ def new_page(request):
                     found_page = True
                     return HttpResponse(f"Page {title} already exists")
             if found_page == False:
-                util.save_entry(title, content)
+                markdown_content = markdown2.markdown(content)
+                util.save_entry(title, markdown_content)
                 page_details = util.get_entry(title)
                 return render(request, "encyclopedia/wiki_page.html", {
                     "name": title,
@@ -133,3 +135,15 @@ def editted_page(request):
                     })
                 
         return HttpResponse("please use the correct title name")
+
+
+def random_page(request):
+    get_pages_list = util.list_entries()
+    n = random.randint(0,len(get_pages_list))
+    page = get_pages_list[n-1]
+    page_content = util.get_entry(page)
+    return render(request, "encyclopedia/random_page.html", {
+        "name": page,
+        "page_details": page_content
+    })
+    # return HttpResponse("random page")
