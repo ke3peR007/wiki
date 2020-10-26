@@ -101,4 +101,35 @@ def new_page(request):
                 # else:
                 #     return HttpResponse(f"Page {title} does not exists")
             
-        
+
+def edit_page(request, name):
+    if request.method == "GET":
+        page_details = util.get_entry(name)
+        edit_form = NewForm(initial={'title': name, 'textarea': page_details})
+        print(edit_form)
+       
+        return render(request, "encyclopedia/edit_page.html", {
+            "name": name,
+            "edit_form": edit_form
+        })
+
+def editted_page(request):
+    if request.method == "POST":
+        form = NewForm(request.POST)
+        if form.is_valid():
+            found_page = False
+            title = form.cleaned_data["title"]
+            content = form.cleaned_data["textarea"]
+
+            title_entries = util.list_entries()
+            for entry in title_entries:
+                if title.lower() == entry.lower():
+                    found_page = True
+                    util.save_entry(title, content)
+                    page_details = util.get_entry(title)
+                    return render(request, "encyclopedia/wiki_page.html", {
+                        "name": title,
+                        "page_details": page_details
+                    })
+                
+        return HttpResponse("please use the correct title name")
