@@ -6,6 +6,7 @@ import re
 import markdown2
 from markdown2 import Markdown
 import random
+from django.shortcuts import redirect
 
 class SearchForm(forms.Form):
     search = forms.CharField(label="")
@@ -93,15 +94,10 @@ def new_page(request):
                 markdown_content = markdown2.markdown(content)
                 util.save_entry(title, markdown_content)
                 page_details = util.get_entry(title)
-                return render(request, "encyclopedia/wiki_page.html", {
-                    "name": title,
-                    "page_details": page_details
-                })
+                return redirect(f'/wiki/{ title }')
+               
         return HttpResponse("exits")
-                # if title == entry:
-                #     return HttpResponse(f"Page {title} already exists")
-                # else:
-                #     return HttpResponse(f"Page {title} does not exists")
+                
             
 
 def edit_page(request, name):
@@ -127,13 +123,21 @@ def editted_page(request):
             for entry in title_entries:
                 if title.lower() == entry.lower():
                     found_page = True
-                    util.save_entry(title, content)
+                    markdown_content = markdown2.markdown(content)
+                    util.save_entry(title, markdown_content)
                     page_details = util.get_entry(title)
-                    return render(request, "encyclopedia/wiki_page.html", {
-                        "name": title,
-                        "page_details": page_details
-                    })
-                
+                    
+                    return redirect(f'/wiki/{ title }')
+                    
+        elif request.method == "GET":
+            page_details = util.get_entry(name)
+            edit_form = NewForm(initial={'title': name, 'textarea': page_details})
+            print(edit_form)
+        
+            return render(request, "encyclopedia/edit_page.html", {
+                "name": name,
+                "edit_form": edit_form
+            })
         return HttpResponse("please use the correct title name")
 
 
@@ -142,8 +146,5 @@ def random_page(request):
     n = random.randint(0,len(get_pages_list))
     page = get_pages_list[n-1]
     page_content = util.get_entry(page)
-    return render(request, "encyclopedia/random_page.html", {
-        "name": page,
-        "page_details": page_content
-    })
-    # return HttpResponse("random page")
+    return redirect(f'/wiki/{ page }')
+    

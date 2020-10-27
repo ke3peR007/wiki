@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block body %}
-    {{ page_details }}
+    {{ page_details | safe}}
     <br>
-    <a href="wiki/edit_page/{{ name }}">Edit {{name}} Page</a>
+    <a href="edit_page/{{ name }}">Edit {{name}} Page</a>
 {% endblock %}
